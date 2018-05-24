@@ -15,7 +15,7 @@ import { RoutesModule } from './routes/routes.module';
 import { LayoutModule } from './layout/layout.module';
 import { StartupService } from '@core/startup/startup.service';
 import { DefaultInterceptor } from '@core/net/default.interceptor';
-import { SimpleInterceptor } from '@delon/auth';
+// import { SimpleInterceptor } from '@delon/auth';
 import { JWTInterceptor } from '@delon/auth';
 // angular i18n
 import { registerLocaleData } from '@angular/common';
@@ -82,7 +82,7 @@ export function StartupServiceFactory(
   providers: [
     { provide: LOCALE_ID, useValue: 'zh-Hans' },
     { provide: HTTP_INTERCEPTORS, useClass: JWTInterceptor, multi: true },
-    { provide: HTTP_INTERCEPTORS, useClass: DefaultInterceptor, multi: true },
+    // { provide: HTTP_INTERCEPTORS, useClass: DefaultInterceptor, multi: true },
     { provide: ALAIN_I18N_TOKEN, useClass: I18NService, multi: false },
     StartupService,
     {

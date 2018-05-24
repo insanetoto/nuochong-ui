@@ -13,6 +13,8 @@ import { ReuseTabService } from '@delon/abc';
 import { environment } from '@env/environment';
 import { StartupService } from '@core/startup/startup.service';
 
+import { AuthService } from '@core/api/auth.service';
+
 @Component({
   selector: 'passport-login',
   templateUrl: './login.component.html',
@@ -37,6 +39,8 @@ export class UserLoginComponent implements OnDestroy {
     private reuseTabService: ReuseTabService,
     @Inject(DA_SERVICE_TOKEN) private tokenService: TokenService,
     private startupSrv: StartupService,
+
+    private authSrv: AuthService,
   ) {
     this.form = fb.group({
       userName: [null, [Validators.required, Validators.minLength(5)]],
@@ -102,33 +106,70 @@ export class UserLoginComponent implements OnDestroy {
     // mock http
     this.loading = true;
 
-    setTimeout(() => {
+    // 用户密码登录
+    if (this.type === 0) {
       this.loading = false;
-      if (this.type === 0) {
-        if (
-          this.userName.value !== 'admin' ||
-          this.password.value !== '888888'
-        ) {
+      this.authSrv.getToken(this.userName.value, this.password.value).subscribe(
+        res => {
+          console.log(JSON.stringify(res));
+          console.log(res['access_token']);
+
+          // 清空路由复用信息
+          this.reuseTabService.clear();
+          // 设置Token信息
+          this.tokenService.set({
+            token: res['access_token'],
+            refresh_token: res['refresh_token'],
+            expires_in: res['expires_in'],
+            scope: res['scope'],
+            license: res['license'],
+            jti: res['jti'],
+            name: this.userName.value,
+            // email: `cipchk@qq.com`,
+            id: 10000,
+            time: +new Date(),
+          });
+          // 重新获取 StartupService 内容，若其包括 User 有关的信息的话
+          // this.startupSrv.load().then(() => this.router.navigate(['/dashboard']));
+          // 否则直接跳转
+          this.router.navigate(['/dashboard']);
+        },
+        err => {
           this.error = `账户或密码错误`;
           return;
         }
-      }
+      );
+    }
 
-      // 清空路由复用信息
-      this.reuseTabService.clear();
-      // 设置Token信息
-      this.tokenService.set({
-        token: '123456789',
-        name: this.userName.value,
-        email: `cipchk@qq.com`,
-        id: 10000,
-        time: +new Date(),
-      });
-      // 重新获取 StartupService 内容，若其包括 User 有关的信息的话
-      // this.startupSrv.load().then(() => this.router.navigate(['/dashboard']));
-      // 否则直接跳转
-      this.router.navigate(['/dashboard']);
-    }, 1000);
+
+    // setTimeout(() => {
+    //   this.loading = false;
+    //   if (this.type === 0) {
+    //     if (
+    //       this.userName.value !== 'admin' ||
+    //       this.password.value !== '888888'
+
+    //     ) {
+    //       this.error = `账户或密码错误`;
+    //       return;
+    //     }
+    //   }
+
+    //   // 清空路由复用信息
+    //   this.reuseTabService.clear();
+    //   // 设置Token信息
+    //   this.tokenService.set({
+    //     token: '123456789',
+    //     name: this.userName.value,
+    //     email: `cipchk@qq.com`,
+    //     id: 10000,
+    //     time: +new Date(),
+    //   });
+    //   // 重新获取 StartupService 内容，若其包括 User 有关的信息的话
+    //   // this.startupSrv.load().then(() => this.router.navigate(['/dashboard']));
+    //   // 否则直接跳转
+    //   this.router.navigate(['/dashboard']);
+    // }, 2000);
   }
 
   // region: social
